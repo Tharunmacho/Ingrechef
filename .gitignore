@@ -1,0 +1,27 @@
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.idea/
+.vscode/
+*.iml
+
+# Other projects/directories in workspace
+$RECYCLE.BIN/
+System Volume Information/
+AndroidDev/
+Antigravity IDE/
+Temp/
+Windsurf/
+activfinal/
+agriculture/
+week1/
+build.log
+build_windows.log
+Network - Shortcut.lnk
+ACTIV Mobile App - Complete UI De.txt
+*.log
+ui designs/
+
+

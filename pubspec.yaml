@@ -1,0 +1,27 @@
+name: ingrechef
+description: Ingrechef Flutter app.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.2
+  image_picker: ^1.1.2
+  mime: ^2.0.0
+
+dependency_overrides:
+  image_picker_android: 0.8.12+19
+  flutter_plugin_android_lifecycle: 2.0.29
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
