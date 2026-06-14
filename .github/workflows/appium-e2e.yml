@@ -1,0 +1,89 @@
+name: Android E2E Appium Automation
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master, dev ]
+
+jobs:
+  e2e-test:
+    runs-on: macos-latest # Required for Android Emulator hardware acceleration
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Node.js Dependencies
+        run: npm install
+        working-directory: ./automation
+
+      - name: Install Appium 2.x & UiAutomator2 Driver
+        run: |
+          npm install -g appium@latest
+          appium driver install uiautomator2
+          appium -v
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+
+      - name: Build Android Debug APK
+        run: |
+          flutter pub get
+          flutter build apk --debug
+
+      - name: Start Appium Server
+        run: |
+          appium --port 4723 --log-no-colors-log-dir ./logs > /dev/null 2>&1 &
+          echo "Waiting for Appium server to start..."
+          sleep 5
+        working-directory: ./automation
+
+      - name: Run E2E Tests on Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            # Verify emulator is active
+            adb devices
+            # Run the Mocha test suite
+            cd automation
+            npm test
+
+      - name: Generate Mochawesome HTML Report
+        if: always()
+        run: |
+          npx marge mochawesome-report/mochawesome.json --reportDir reports/html --reportFilename index.html || true
+        working-directory: ./automation
+
+      - name: Upload Excel & HTML Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-test-reports
+          path: |
+            automation/excel/
+            automation/reports/
+            automation/logs/
+          if-no-files-found: warn
+

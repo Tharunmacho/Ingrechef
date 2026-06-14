@@ -13,7 +13,7 @@ CORS(app)
 # ─────────────────────────────────────────────
 # DATABASE CONFIG  →  change user/pass/host/db
 # ─────────────────────────────────────────────
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://@10.206.61.210/ingrechef'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ingrechef.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'ingrechef_secret_2024'
 
@@ -301,6 +301,24 @@ def update_profile():
 
 
 
+# Helper to auto-detect ingredient category
+def get_ingredient_category(name):
+    name_lower = name.lower()
+    if any(k in name_lower for k in ['chicken', 'beef', 'pork', 'fish', 'turkey', 'shrimp', 'tofu', 'egg', 'meat', 'parmesan', 'cheese']):
+        return 'Protein'
+    elif any(k in name_lower for k in ['tomato', 'onion', 'garlic', 'carrot', 'broccoli', 'pepper', 'mushroom', 'lettuce', 'potato', 'cucumber']):
+        return 'Vegetables'
+    elif any(k in name_lower for k in ['pasta', 'spaghetti', 'rice', 'bread', 'oats', 'quinoa', 'flour']):
+        return 'Grains'
+    elif any(k in name_lower for k in ['cumin', 'pepper', 'salt', 'oregano', 'paprika', 'cinnamon', 'turmeric']):
+        return 'Spices'
+    elif any(k in name_lower for k in ['oil', 'sauce', 'vinegar', 'ketchup', 'mayo', 'soy']):
+        return 'Condiments'
+    elif any(k in name_lower for k in ['spinach', 'lettuce', 'basil', 'cilantro', 'parsley', 'cabbage', 'greens']):
+        return 'Greens'
+    return 'Other'
+
+
 # ══════════════════════════════════════════════
 #  INGREDIENT  ROUTES
 # ══════════════════════════════════════════════
@@ -316,11 +334,16 @@ def add_ingredient():
         if not data or 'user_email' not in data or 'name' not in data:
             return jsonify({'error': 'user_email and name required'}), 400
 
+        name = data['name']
+        category = data.get('category', 'Other')
+        if category == 'Other':
+            category = get_ingredient_category(name)
+
         ing = Ingredient(
             user_email = data['user_email'],
-            name       = data['name'],
+            name       = name,
             quantity   = data.get('quantity', '1 pc'),
-            category   = data.get('category', 'Other'),
+            category   = category,
             expiry     = data.get('expiry', 'Unknown')
         )
         db.session.add(ing)
@@ -750,16 +773,71 @@ def delete_shopping_item():
 
 @app.route('/clear_completed_shopping', methods=['DELETE'])
 def clear_completed_shopping():
-    """Remove all is_done=True items for a user. JSON: { user_email }"""
+    """Remove all is_done=True items for a user and add them to ingredients pantry. JSON: { user_email }"""
     try:
         data = request.get_json()
         if not data or 'user_email' not in data:
             return jsonify({'error': 'user_email required'}), 400
 
+        completed_items = ShoppingItem.query.filter_by(
+            user_email=data['user_email'], is_done=True).all()
+
+        for item in completed_items:
+            # Check if this ingredient already exists in the pantry (case-insensitive)
+            existing = Ingredient.query.filter(
+                Ingredient.user_email == data['user_email'],
+                db.func.lower(Ingredient.name) == db.func.lower(item.name)
+            ).first()
+            if not existing:
+                ing = Ingredient(
+                    user_email = data['user_email'],
+                    name       = item.name,
+                    quantity   = item.quantity or '1 pc',
+                    category   = get_ingredient_category(item.name),
+                    expiry     = 'Unknown'
+                )
+                db.session.add(ing)
+
         ShoppingItem.query.filter_by(
             user_email=data['user_email'], is_done=True).delete()
         db.session.commit()
-        return jsonify({'message': 'Completed items cleared'}), 200
+        return jsonify({'message': 'Completed items cleared and added to pantry'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/clear_all_shopping', methods=['DELETE'])
+def clear_all_shopping():
+    """Remove all shopping items for a user to allow a clean test start. JSON: { user_email }"""
+    try:
+        data = request.get_json()
+        if not data or 'user_email' not in data:
+            return jsonify({'error': 'user_email required'}), 400
+
+        ShoppingItem.query.filter_by(user_email=data['user_email']).delete()
+        db.session.commit()
+        return jsonify({'message': 'All shopping items cleared'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/clear_user_data', methods=['DELETE'])
+def clear_user_data():
+    """Remove all user-created records (ingredients, shopping list, saved meals, cooking history) for clean test runs. JSON: { user_email }"""
+    try:
+        data = request.get_json()
+        if not data or 'user_email' not in data:
+            return jsonify({'error': 'user_email required'}), 400
+
+        email = data['user_email']
+        Ingredient.query.filter_by(user_email=email).delete()
+        ShoppingItem.query.filter_by(user_email=email).delete()
+        SavedMeal.query.filter_by(user_email=email).delete()
+        CookingHistory.query.filter_by(user_email=email).delete()
+        db.session.commit()
+        return jsonify({'message': 'All user data cleared'}), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

@@ -1,6 +1,6 @@
 class Url {
   // ── Change ONLY this one line when your backend IP changes ──
-  static const String base = 'https://web-production-24ea3.up.railway.app';
+  static const String base = 'http://localhost:5000';
 
   // ── Auth ──
   static const String signup           = '$base/signup';

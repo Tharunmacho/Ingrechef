@@ -24,4 +24,16 @@ ACTIV Mobile App - Complete UI De.txt
 *.log
 ui designs/
 
+# Appium E2E Automation Framework
+node_modules/
+.env
+excel/
+reports/
+logs/
+screenshots/
+mochawesome-report/
+*.db
+instance/
+automation/diagnose_output.xml
+automation/screen.png
 
