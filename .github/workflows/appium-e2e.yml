@@ -33,7 +33,11 @@ jobs:
 
       - name: Install Appium 2.x & UiAutomator2 Driver
         run: |
+          mkdir -p ~/.npm-global
+          npm config set prefix '~/.npm-global'
           npm install -g appium@latest
+          export PATH=~/.npm-global/bin:$PATH
+          echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
           appium driver install uiautomator2
           appium -v
 
@@ -50,7 +54,7 @@ jobs:
 
       - name: Start Appium Server
         run: |
-          appium --port 4723 --log-no-colors-log-dir ./logs > /dev/null 2>&1 &
+          appium --port 4723 --log-no-colors --log ./logs/appium.log > /dev/null 2>&1 &
           echo "Waiting for Appium server to start..."
           sleep 5
         working-directory: ./automation
