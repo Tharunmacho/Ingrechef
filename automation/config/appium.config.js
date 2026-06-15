@@ -25,7 +25,7 @@ const config = {
 
 // Set dynamic capabilities based on the launch strategy
 if (config.launchType.toUpperCase() === 'APK') {
-  const apkRelativePath = process.env.APK_PATH || './build/app/outputs/flutter-apk/app-debug.apk';
+  const apkRelativePath = process.env.APK_PATH || '../build/app/outputs/flutter-apk/app-debug.apk';
   config.capabilities['appium:app'] = path.resolve(process.cwd(), apkRelativePath);
 } else {
   config.capabilities['appium:appPackage'] = process.env.APP_PACKAGE || 'com.example.ingrechef';
