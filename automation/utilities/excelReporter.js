@@ -200,6 +200,27 @@ class ExcelReporter {
     } catch (e) {
       console.error(`[ExcelReporter] WARNING: Failed to write Excel report to ${this.reportPath}. It might be open in Excel. Error: ${e.message}`);
     }
+
+    // Also write excel.csv containing the Test Cases tab in CSV format
+    try {
+      const csvPath = path.join(this.reportDir, 'excel.csv');
+      const header = '"Test ID","Module","Scenario","Device","Status","Start Time","End Time","Duration"\n';
+      const rows = this.testCases.map(tc => {
+        const testId = tc.testId || '';
+        const moduleVal = tc.module || '';
+        const scenario = (tc.scenario || '').replace(/"/g, '""');
+        const device = tc.device || '';
+        const status = tc.status || '';
+        const startTime = tc.startTime ? tc.startTime.toISOString() : 'N/A';
+        const endTime = tc.endTime ? tc.endTime.toISOString() : 'N/A';
+        const duration = (tc.duration / 1000).toFixed(2) + 's';
+        
+        return `"${testId}","${moduleVal}","${scenario}","${device}","${status}","${startTime}","${endTime}","${duration}"`;
+      });
+      fs.writeFileSync(csvPath, header + rows.join('\n') + '\n');
+    } catch (csvError) {
+      console.error(`[ExcelReporter] WARNING: Failed to write excel.csv: ${csvError.message}`);
+    }
   }
 }
 

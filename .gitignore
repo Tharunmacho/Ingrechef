@@ -27,7 +27,9 @@ ui designs/
 # Appium E2E Automation Framework
 node_modules/
 .env
-excel/
+automation/excel/*
+!automation/excel/Mobile_E2E_Report.xlsx
+!automation/excel/*.csv
 reports/
 logs/
 screenshots/
