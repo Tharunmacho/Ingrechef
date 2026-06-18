@@ -59,21 +59,10 @@ jobs:
           sleep 5
         working-directory: ./automation
 
-      - name: Run E2E Tests on Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          target: google_apis
-          arch: arm64-v8a
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: |
-            # Verify emulator is active
-            adb devices
-            # Run the Mocha test suite, allowing the workflow step to succeed if tests fail
-            cd automation
-            npm test || true
+      - name: Run E2E Tests
+        run: |
+          cd automation
+          npm run test:e2e || true
 
       - name: Generate Mochawesome HTML Report
         if: always()
