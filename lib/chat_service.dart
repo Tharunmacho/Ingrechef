@@ -6,7 +6,7 @@ import 'package:mime/mime.dart';
 class ChefChatService {
   static const String _apiKey = String.fromEnvironment(
     'GEMINI_API_KEY',
-    defaultValue: 'YOUR_GEMINI_API_KEY_HERE',
+    defaultValue: '',
   );
 
   static const String _model = 'gemini-2.5-flash';

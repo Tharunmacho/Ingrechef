@@ -1,6 +1,6 @@
 class Url {
   // ── Change ONLY this one line when your backend IP changes ──
-  static const String base = 'http://localhost:5000';
+  static const String base = 'http://10.118.70.10:5000';
 
   // ── Auth ──
   static const String signup           = '$base/signup';

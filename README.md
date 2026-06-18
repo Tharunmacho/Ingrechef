@@ -1,6 +1,27 @@
-# Ingrechef - Enterprise Appium E2E Automation Framework
+Welcome to the central documentation for the **Ingrechef** project. This ecosystem consists of a Python Flask-based backend API service and a companion native Android mobile application, both rigorously tested for functionality and security.
 
-An enterprise-grade, robust, and scalable End-to-End (E2E) mobile test automation framework designed for the **Ingrechef** Android application. It utilizes **Appium 2.x**, **Node.js**, **Mocha**, **Chai**, and **WebDriverIO** (as the Appium client) inside a modular **Page Object Model (POM)** architecture.
+## 📦 Project Repositories
+
+This project's source code is hosted in a unified repository containing both components:
+
+| Component | Repository | Primary E2E Framework |
+| :--- | :--- | :--- |
+| **Backend API** | [Tharunmacho/Ingrechef](https://github.com/Tharunmacho/Ingrechef) | Manual / Integration |
+| **Android Application** | [Tharunmacho/Ingrechef](https://github.com/Tharunmacho/Ingrechef) | Appium |
+
+---
+
+## 🧪 Quality Assurance & CI/CD
+
+We prioritize reliability and security. The repository utilizes GitHub Actions to run automated End-to-End (E2E) tests and comprehensive vulnerability scans.
+
+### 🌐 Backend API ( Ingrechef API )
+* **Testing Scope**: API endpoint validations, user authentication flow, pantry ingredients management, and database integrity.
+* **Tools**: Flask, SQLAlchemy, SQLite, Python testing tools.
+
+### 📱 Android Application ( Ingrechef App )
+* **Testing Scope**: UI/UX flows, gestures (scroll, swipe, pinch), screen transitions, and platform integration.
+* **Tools**: Appium 2.x, WebDriverIO, Mocha, Chai.
 
 ---
 
@@ -28,6 +49,7 @@ An enterprise-grade, robust, and scalable End-to-End (E2E) mobile test automatio
 project-root/
 ├── .github/workflows/
 │   └── appium-e2e.yml           # CI/CD GitHub Actions pipeline configuration
+├── lib/                         # Android App Source Code (Flutter)
 └── automation/                  # E2E Mobile Test Automation Framework
     ├── config/
     │   └── appium.config.js     # Port, host, package info, capability configurations

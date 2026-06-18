@@ -36,4 +36,12 @@ mochawesome-report/
 instance/
 automation/diagnose_output.xml
 automation/screen.png
+
+# Ignore other projects
+migrane/
+
+# Ignore shortcuts
+*.lnk
+**/*.lnk
+
 
