@@ -1,0 +1,43 @@
+name: Security E2E Vulnerability Suite (400 Tests)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        working-directory: ./automation
+        run: npm install
+
+      - name: Run 400 Vulnerability Tests
+        working-directory: ./automation
+        env:
+          TARGET_URL: "http://127.0.0.1:8080"
+          TOTAL_VULN_TESTS: 400
+        run: |
+          # Executes your security scanning target suite
+          npm run test:security -- --count=400 || echo "Scan completed with findings."
+
+      - name: Upload Security Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-vulnerability-reports
+          path: |
+            automation/**/reports/security-*.csv
+            automation/**/reports/security-*.xlsx

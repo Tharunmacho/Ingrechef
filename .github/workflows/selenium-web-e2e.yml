@@ -1,0 +1,42 @@
+name: Selenium Web E2E Suite (400 Tests)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  selenium-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run 400 Selenium Web Tests
+        working-directory: ./frontend
+        env:
+          TARGET_URL: "http://127.0.0.1:8080"
+        run: |
+          # Executes your browser functional loop
+          npm run test:selenium -- --count=400
+
+      - name: Upload Selenium Execution Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-web-reports
+          path: |
+            frontend/**/reports/selenium-*.csv
+            frontend/**/reports/selenium-*.xlsx
