@@ -51,4 +51,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-test-reports
-          path: automation/reports/
+          path: |
+            automation/reports/
+            automation/excel/
