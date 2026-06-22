@@ -15,7 +15,7 @@ class ApiService {
       final res = await http
           .post(Uri.parse(url),
               headers: _headers, body: jsonEncode(body))
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       return jsonDecode(res.body);
     } catch (e) {
       return {'error': 'Network error: $e'};
@@ -26,7 +26,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse(url), headers: _headers)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       return jsonDecode(res.body);
     } catch (e) {
       return {'error': 'Network error: $e'};
@@ -39,7 +39,7 @@ class ApiService {
       final res = await http
           .delete(Uri.parse(url),
               headers: _headers, body: jsonEncode(body))
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       return jsonDecode(res.body);
     } catch (e) {
       return {'error': 'Network error: $e'};

@@ -96,31 +96,71 @@ class _AiChatScreenState extends State<AiChatScreen>
     _msgController.clear();
     _scrollToBottom();
 
+    ChatMessage? botMsg;
+
     try {
-      final response = await _chatService.sendMessage(
+      final stream = _chatService.sendMessageStream(
         message: text.isNotEmpty ? text : null,
         imageFile: image,
       );
 
-      setState(() {
-        _isTyping = false;
-
-        _messages.add(
-          ChatMessage(
-            content: response,
+      await for (final token in stream) {
+        if (botMsg == null) {
+          botMsg = ChatMessage(
+            content: token,
             isBot: true,
             timestamp: DateTime.now(),
-          ),
-        );
-      });
+          );
+          setState(() {
+            _isTyping = false;
+            _messages.add(botMsg!);
+          });
+        } else {
+          final index = _messages.indexOf(botMsg!);
+          if (index != -1) {
+            setState(() {
+              botMsg = ChatMessage(
+                content: botMsg!.content + token,
+                isBot: true,
+                timestamp: botMsg!.timestamp,
+              );
+              _messages[index] = botMsg!;
+            });
+          }
+        }
+        _scrollToBottom();
+      }
     } catch (e) {
       setState(() {
         _isTyping = false;
+        if (botMsg == null) {
+          _messages.add(
+            ChatMessage(
+              content: "Sorry, I'm having trouble right now. Please try again in a moment! 😅",
+              isBot: true,
+              timestamp: DateTime.now(),
+            ),
+          );
+        } else {
+          final index = _messages.indexOf(botMsg!);
+          if (index != -1) {
+            _messages[index] = ChatMessage(
+              content: botMsg!.content + "\n\n[Connection lost. Please try again! 😅]",
+              isBot: true,
+              timestamp: botMsg!.timestamp,
+            );
+          }
+        }
+      });
+    }
 
+    // Safety check in case the stream ended without yielding anything
+    if (botMsg == null && _isTyping) {
+      setState(() {
+        _isTyping = false;
         _messages.add(
           ChatMessage(
-            content:
-            "Sorry, I'm having trouble right now. Please try again in a moment! 😅",
+            content: "Sorry, I'm having trouble right now. Please try again in a moment! 😅",
             isBot: true,
             timestamp: DateTime.now(),
           ),

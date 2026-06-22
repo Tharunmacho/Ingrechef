@@ -46,4 +46,5 @@ migrane/
 *.lnk
 **/*.lnk
 
-
+# Ignore local secrets
+api_key.txt

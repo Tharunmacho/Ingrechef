@@ -52,7 +52,20 @@ class _AiMealGenerationScreenState extends State<AiMealGenerationScreen>
   }
 
   List<Map<String, dynamic>> get _sortedMeals {
-    final list = List<Map<String, dynamic>>.from(_meals);
+    var filtered = _meals;
+    if (_dietFilter == 'Veg') {
+      filtered = _meals.where((m) {
+        final tags = m['tags'] as List?;
+        return tags != null && tags.any((t) => t.toString().toLowerCase() == 'vegetarian' || t.toString().toLowerCase() == 'veg');
+      }).toList();
+    } else if (_dietFilter == 'Non-Veg') {
+      filtered = _meals.where((m) {
+        final tags = m['tags'] as List?;
+        return tags != null && tags.any((t) => t.toString().toLowerCase() == 'non-veg' || t.toString().toLowerCase() == 'nonveg');
+      }).toList();
+    }
+
+    final list = List<Map<String, dynamic>>.from(filtered);
     list.sort((a, b) {
       if (_sortBy == 'Time')     return (a['time']     as int).compareTo(b['time']     as int);
       if (_sortBy == 'Calories') return (a['calories'] as int).compareTo(b['calories'] as int);

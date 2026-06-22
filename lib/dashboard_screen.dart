@@ -94,18 +94,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(_greeting, style: const TextStyle(fontSize: 13, color: Color(0xFF7A8A7A))),
           Text(widget.userName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF1E3A1E))),
         ])),
-        Stack(children: [
-          Container(width: 46, height: 46,
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10)]),
-            child: const Icon(Icons.notifications_outlined, color: Color(0xFF3A5A3A), size: 22)),
-          if (_shoppingPending > 0)
-            Positioned(right: 10, top: 10,
-              child: Container(width: 16, height: 16,
-                decoration: const BoxDecoration(color: Color(0xFFE84C4C), shape: BoxShape.circle),
-                child: Center(child: Text('$_shoppingPending',
-                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700))))),
-        ]),
       ]),
     );
   }

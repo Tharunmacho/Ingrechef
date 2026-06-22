@@ -432,10 +432,69 @@ def clear_ingredients():
 @app.route('/generate_meals', methods=['POST'])
 def generate_meals():
     """
-    Simple rule‑based meal generator based on available ingredients.
-    (Swap the logic below with an OpenAI / Gemini API call for real AI.)
+    Real-time AI meal generator using Gemini API based on user's pantry.
+    If the API call fails or the key is not valid, it falls back to the local rule-based catalog.
     JSON: { user_email, diet_filter }   diet_filter = 'All'|'Veg'|'Non-Veg'
     """
+    # 1. Fallback meal catalogue (same as before)
+    all_meals = [
+        {
+            'name'        : 'Pasta Primavera',
+            'emoji'       : '🍝',
+            'time'        : 25,
+            'calories'    : 380,
+            'difficulty'  : 'Easy',
+            'tags'        : ['Vegetarian'],
+            'needs'       : ['pasta', 'tomatoes', 'spinach', 'garlic', 'olive oil'],
+            'optional'    : ['basil', 'parmesan'],
+            'nutrition'   : {'protein': 14, 'carbs': 65, 'fat': 9, 'fiber': 6}
+        },
+        {
+            'name'        : 'Chicken Stir Fry',
+            'emoji'       : '🥘',
+            'time'        : 20,
+            'calories'    : 450,
+            'difficulty'  : 'Easy',
+            'tags'        : ['Non-Veg', 'High Protein'],
+            'needs'       : ['chicken', 'onion', 'garlic', 'olive oil'],
+            'optional'    : ['soy sauce', 'bell pepper'],
+            'nutrition'   : {'protein': 38, 'carbs': 12, 'fat': 14, 'fiber': 3}
+        },
+        {
+            'name'        : 'Spinach Frittata',
+            'emoji'       : '🍳',
+            'time'        : 30,
+            'calories'    : 310,
+            'difficulty'  : 'Medium',
+            'tags'        : ['Vegetarian', 'High Protein'],
+            'needs'       : ['eggs', 'spinach', 'onion', 'garlic'],
+            'optional'    : ['cheese', 'cream'],
+            'nutrition'   : {'protein': 22, 'carbs': 8, 'fat': 18, 'fiber': 2}
+        },
+        {
+            'name'        : 'Tomato Egg Drop Soup',
+            'emoji'       : '🍲',
+            'time'        : 15,
+            'calories'    : 180,
+            'difficulty'  : 'Easy',
+            'tags'        : ['Vegetarian'],
+            'needs'       : ['eggs', 'tomatoes', 'garlic', 'onion'],
+            'optional'    : ['spring onion'],
+            'nutrition'   : {'protein': 10, 'carbs': 14, 'fat': 7, 'fiber': 2}
+        },
+        {
+            'name'        : 'Garlic Spaghetti (Aglio e Olio)',
+            'emoji'       : '🍝',
+            'time'        : 20,
+            'calories'    : 340,
+            'difficulty'  : 'Easy',
+            'tags'        : ['Vegetarian'],
+            'needs'       : ['pasta', 'garlic', 'olive oil'],
+            'optional'    : ['parmesan', 'chilli flakes'],
+            'nutrition'   : {'protein': 10, 'carbs': 58, 'fat': 10, 'fiber': 3}
+        },
+    ]
+
     try:
         data = request.get_json()
         if not data or 'user_email' not in data:
@@ -446,83 +505,214 @@ def generate_meals():
 
         # Fetch user's ingredients
         ingredients = Ingredient.query.filter_by(user_email=email).all()
-        pantry      = [i.name.lower() for i in ingredients]
+        pantry      = [i.name.strip().lower() for i in ingredients]
 
-        # Meal catalogue
-        all_meals = [
-            {
-                'name'        : 'Pasta Primavera',
-                'emoji'       : '🍝',
-                'time'        : 25,
-                'calories'    : 380,
-                'difficulty'  : 'Easy',
-                'tags'        : ['Vegetarian'],
-                'needs'       : ['pasta', 'tomatoes', 'spinach', 'garlic', 'olive oil'],
-                'optional'    : ['basil', 'parmesan'],
-                'nutrition'   : {'protein': 14, 'carbs': 65, 'fat': 9, 'fiber': 6}
-            },
-            {
-                'name'        : 'Chicken Stir Fry',
-                'emoji'       : '🥘',
-                'time'        : 20,
-                'calories'    : 450,
-                'difficulty'  : 'Easy',
-                'tags'        : ['Non-Veg', 'High Protein'],
-                'needs'       : ['chicken', 'onion', 'garlic', 'olive oil'],
-                'optional'    : ['soy sauce', 'bell pepper'],
-                'nutrition'   : {'protein': 38, 'carbs': 12, 'fat': 14, 'fiber': 3}
-            },
-            {
-                'name'        : 'Spinach Frittata',
-                'emoji'       : '🍳',
-                'time'        : 30,
-                'calories'    : 310,
-                'difficulty'  : 'Medium',
-                'tags'        : ['Vegetarian', 'High Protein'],
-                'needs'       : ['eggs', 'spinach', 'onion', 'garlic'],
-                'optional'    : ['cheese', 'cream'],
-                'nutrition'   : {'protein': 22, 'carbs': 8, 'fat': 18, 'fiber': 2}
-            },
-            {
-                'name'        : 'Tomato Egg Drop Soup',
-                'emoji'       : '🍲',
-                'time'        : 15,
-                'calories'    : 180,
-                'difficulty'  : 'Easy',
-                'tags'        : ['Vegetarian'],
-                'needs'       : ['eggs', 'tomatoes', 'garlic', 'onion'],
-                'optional'    : ['spring onion'],
-                'nutrition'   : {'protein': 10, 'carbs': 14, 'fat': 7, 'fiber': 2}
-            },
-            {
-                'name'        : 'Garlic Spaghetti (Aglio e Olio)',
-                'emoji'       : '🍝',
-                'time'        : 20,
-                'calories'    : 340,
-                'difficulty'  : 'Easy',
-                'tags'        : ['Vegetarian'],
-                'needs'       : ['pasta', 'garlic', 'olive oil'],
-                'optional'    : ['parmesan', 'chilli flakes'],
-                'nutrition'   : {'protein': 10, 'carbs': 58, 'fat': 10, 'fiber': 3}
-            },
+        pantry_str = ", ".join(pantry) if pantry else "None (Pantry is empty)"
+        
+        # Try loading API key from environment variable, then from local file
+        import os
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            if os.path.exists("api_key.txt"):
+                with open("api_key.txt", "r", encoding="utf-8") as f:
+                    api_key = f.read().strip()
+        
+        if not api_key:
+            raise Exception("GEMINI_API_KEY not found in environment or local api_key.txt file. Please set it to proceed.")
+        
+        prompt = f"""
+You are an expert chef AI. Based on the user's pantry ingredients, generate 12-15 creative and realistic meal recommendations.
+Dietary filter: {diet_filter}
+
+User's Pantry ingredients: {pantry_str}
+
+Please generate the recommendations and output them in a strict JSON format. The response must be a JSON object containing a "meals" array, where each meal follows this exact JSON structure:
+{{
+  "name": "Meal Name",
+  "emoji": "🍳",
+  "time": 25,
+  "calories": 420,
+  "difficulty": "Easy", // Easy, Medium, or Hard
+  "tags": ["Vegetarian"], // Tag list (e.g. Vegetarian, Gluten-Free, Non-Veg) matching diet filter: {diet_filter}
+  "needs": ["pasta", "tomatoes"], // The complete list of ingredients needed for this recipe (all lowercase)
+  "optional": ["cheese"], // Optional ingredients (all lowercase)
+  "nutrition": {{
+    "protein": 15,
+    "carbs": 60,
+    "fat": 10,
+    "fiber": 5
+  }}
+}}
+
+CRITICAL INSTRUCTIONS FOR MEAL GENERATION:
+1. Generate between 12 and 15 recipes. Try to output as close to 15 recipes as possible to give the user a full list of ideas.
+2. The recipes must be diverse:
+   - Some recipes should be fully-cookable with the user's current pantry.
+   - Importantly, generate several recipes where only some (or even just ONE or TWO) of the user's pantry ingredients are used, and the rest of the essential ingredients are listed in "needs" but are NOT in the user's pantry. This allows the user to see what they can cook if they buy a few extra items.
+   - Do NOT restrict yourself to only showing high-matching meals. Include meals with low matching percentages (down to 10-20% match), as long as at least ONE ingredient from the user's pantry is required in the meal.
+3. For each meal, evaluate the user's pantry list against the "needs" list:
+   - "needs" MUST contain all essential ingredients to make the meal, even if the user does not have them (so the user knows what to purchase).
+4. Return ONLY the raw JSON string matching this structure. Do NOT wrap inside markdown block. Just raw JSON.
+"""
+
+        import requests
+        import json
+        
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "responseMimeType": "application/json",
+                "temperature": 0.7,
+            }
+        }
+        
+        models_to_try = [
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-flash-lite-latest"
         ]
+        
+        response = None
+        last_error_msg = ""
+        for model_name in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            print(f"Calling Gemini API with model {model_name}: {url}")
+            try:
+                r = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=30)
+                print(f"Gemini API ({model_name}) Status Code: {r.status_code}")
+                if r.status_code == 200:
+                    response = r
+                    break
+                else:
+                    last_error_msg = f"Model {model_name} returned status code {r.status_code}: {r.text}"
+                    print(last_error_msg)
+            except Exception as e:
+                last_error_msg = f"Model {model_name} request failed: {str(e)}"
+                print(last_error_msg)
+        
+        if response is not None:
+            res_data = response.json()
+            raw_text = res_data['candidates'][0]['content']['parts'][0]['text']
+            ai_data = json.loads(raw_text)
+            
+            # Defensive parsing of the JSON structure returned by Gemini
+            if isinstance(ai_data, list):
+                meals = ai_data
+            elif isinstance(ai_data, dict):
+                meals = ai_data.get('meals', [])
+                if not isinstance(meals, list):
+                    for key, val in ai_data.items():
+                        if isinstance(val, list):
+                            meals = val
+                            break
+                    if not isinstance(meals, list):
+                        meals = [ai_data]
+            else:
+                meals = []
+                
+            results = []
+            for meal in meals:
+                if not isinstance(meal, dict):
+                    continue
+                    
+                raw_needs = meal.get('needs', [])
+                if not isinstance(raw_needs, list):
+                    raw_needs = [raw_needs] if raw_needs else []
+                needs = [str(n).lower().strip() for n in raw_needs if n]
+                
+                have = [n for n in needs if n in pantry]
+                missing = [n for n in needs if n not in pantry]
+                match = int((len(have) / len(needs)) * 100) if needs else 0
+                
+                raw_tags = meal.get('tags', [])
+                if not isinstance(raw_tags, list):
+                    raw_tags = [raw_tags] if raw_tags else []
+                tags = [str(t) for t in raw_tags if t]
+                
+                raw_nutrition = meal.get('nutrition')
+                if isinstance(raw_nutrition, dict):
+                    nutrition = {
+                        'protein': raw_nutrition.get('protein', 10),
+                        'carbs': raw_nutrition.get('carbs', 40),
+                        'fat': raw_nutrition.get('fat', 10),
+                        'fiber': raw_nutrition.get('fiber', 2)
+                    }
+                else:
+                    nutrition = {'protein': 10, 'carbs': 40, 'fat': 10, 'fiber': 2}
+                
+                # Determine and standardize diet category (Vegetarian vs Non-Veg)
+                has_nonveg_tags = any(t.lower() in ['non-veg', 'nonveg', 'meat', 'chicken', 'fish', 'egg', 'eggs'] for t in tags)
+                
+                # Check ingredients for meat/eggs (including eggs, chicken, beef, pork, fish, turkey, shrimp, mutton, meat)
+                has_nonveg_ingredient = any(
+                    any(item in ing.lower() for item in ['chicken', 'beef', 'pork', 'fish', 'turkey', 'shrimp', 'mutton', 'meat', 'egg', 'eggs'])
+                    for ing in needs
+                )
+                
+                # Check meal name for meat/eggs
+                has_nonveg_in_name = any(
+                    item in meal.get('name', '').lower() 
+                    for item in ['chicken', 'beef', 'pork', 'fish', 'turkey', 'shrimp', 'mutton', 'meat', 'egg', 'eggs']
+                )
+                
+                is_actually_veg = not (has_nonveg_tags or has_nonveg_ingredient or has_nonveg_in_name)
+                
+                standardized_tags = []
+                if is_actually_veg:
+                    standardized_tags.append('Vegetarian')
+                else:
+                    standardized_tags.append('Non-Veg')
+                
+                for t in tags:
+                    if t.lower() not in ['vegetarian', 'veg', 'vegan', 'non-veg', 'nonveg']:
+                        standardized_tags.append(t)
+                
+                results.append({
+                    'name': meal.get('name', 'Unknown Meal'),
+                    'emoji': meal.get('emoji', '🍽️'),
+                    'time': meal.get('time', 30),
+                    'calories': meal.get('calories', 350),
+                    'difficulty': meal.get('difficulty', 'Easy'),
+                    'tags': standardized_tags,
+                    'have': have,
+                    'missing': missing,
+                    'match_pct': match,
+                    'nutrition': nutrition,
+                    'is_veg': is_actually_veg
+                })
+            
+            # Post-filter strictly by diet_filter
+            filtered_results = []
+            for item in results:
+                if diet_filter == 'Veg' and not item['is_veg']:
+                    continue
+                if diet_filter == 'Non-Veg' and item['is_veg']:
+                    continue
+                filtered_results.append(item)
+            
+            # Sort by match percentage descending
+            filtered_results.sort(key=lambda x: x['match_pct'], reverse=True)
+            return jsonify({'status': 'success', 'meals': filtered_results}), 200
+        else:
+            raise Exception(f"All Gemini models failed. Last error: {last_error_msg}")
 
+    except Exception as e:
+        import traceback
+        print("Gemini API error:")
+        traceback.print_exc()
+        print(f"Falling back to static catalog: {e}")
+        # FALLBACK to static catalog
         results = []
         for meal in all_meals:
-            # Diet filter
             if diet_filter == 'Veg' and 'Vegetarian' not in meal['tags']:
                 continue
             if diet_filter == 'Non-Veg' and 'Non-Veg' not in meal['tags']:
                 continue
 
-            # Calculate which required ingredients the user has
             have    = [i for i in meal['needs'] if i in pantry]
             missing = [i for i in meal['needs'] if i not in pantry]
             match   = int((len(have) / len(meal['needs'])) * 100) if meal['needs'] else 0
-
-            # Only suggest if user has at least 50 % of required ingredients
-            if match < 50:
-                continue
 
             results.append({
                 'name'       : meal['name'],
@@ -537,13 +727,8 @@ def generate_meals():
                 'nutrition'  : meal['nutrition']
             })
 
-        # Sort by match percentage descending
         results.sort(key=lambda x: x['match_pct'], reverse=True)
-
         return jsonify({'status': 'success', 'meals': results}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 # ══════════════════════════════════════════════
