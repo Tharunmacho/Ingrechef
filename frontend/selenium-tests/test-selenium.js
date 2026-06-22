@@ -38,8 +38,8 @@ describe('Ingrechef Selenium Functional Suite', function () {
         );
     });
 
-    // Generate 400 explicit UI navigation iterations
-    const uiMatrix = Array.from({ length: 400 }, (_, i) => ({
+    // Generate 450 explicit UI navigation iterations
+    const uiMatrix = Array.from({ length: 450 }, (_, i) => ({
         id: i + 1,
         elementTarget: `nav-item-${i + 1}`
     }));

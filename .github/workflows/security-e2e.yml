@@ -1,4 +1,4 @@
-name: Security E2E Vulnerability Suite (400 Tests)
+name: Security E2E Vulnerability Suite (450 Tests)
 
 on:
   push:
@@ -24,14 +24,14 @@ jobs:
         working-directory: ./automation
         run: npm install
 
-      - name: Run 400 Vulnerability Tests
+      - name: Run 450 Vulnerability Tests
         working-directory: ./automation
         env:
           TARGET_URL: "http://127.0.0.1:8080"
-          TOTAL_VULN_TESTS: 400
+          TOTAL_VULN_TESTS: 450
         run: |
           # Executes your security scanning target suite
-          npm run test:security -- --count=400 || echo "Security scans completed, compiling findings..."
+          npm run test:security -- --count=450 || echo "Security scans completed, compiling findings..."
 
       - name: Upload Security Reports
         if: always()

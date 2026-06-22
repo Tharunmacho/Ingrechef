@@ -36,8 +36,8 @@ describe('Scaled E2E Automation Matrix', function () {
       );
   });
 
-  // Execute 400 test iterations as part of the scaled automation matrix
-  const ITERATIONS = 400;
+  // Execute 450 test iterations as part of the scaled automation matrix
+  const ITERATIONS = 450;
 
   for (let i = 1; i <= ITERATIONS; i++) {
     it(`Scaled Test Iteration ${i}: Verify App State`, async function () {

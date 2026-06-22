@@ -1,4 +1,4 @@
-name: Selenium Web E2E Suite (400 Tests)
+name: Selenium Web E2E Suite (450 Tests)
 
 on:
   push:
@@ -24,13 +24,13 @@ jobs:
         working-directory: ./frontend
         run: npm install
 
-      - name: Run 400 Selenium Web Tests
+      - name: Run 450 Selenium Web Tests
         working-directory: ./frontend
         env:
           TARGET_URL: "http://127.0.0.1:8080"
         run: |
           # Executes your browser functional loop
-          npm run test:selenium -- --count=400 || echo "Tests completed with failures, archiving data..."
+          npm run test:selenium -- --count=450 || echo "Tests completed with failures, archiving data..."
 
       - name: Upload Selenium Execution Reports
         if: always()

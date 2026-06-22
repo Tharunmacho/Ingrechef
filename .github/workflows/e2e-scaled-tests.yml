@@ -1,4 +1,4 @@
-name: Scaled E2E Automation Matrix (400 Tests)
+name: Scaled E2E Automation Matrix (450 Tests)
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
           echo "Waiting for Appium to boot..."
           sleep 10
 
-      - name: Execute 400+ Test Suite
+      - name: Execute 450+ Test Suite
         working-directory: ./automation
         env:
           TARGET_URL: "http://localhost:5000"

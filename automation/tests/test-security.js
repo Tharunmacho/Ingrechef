@@ -37,8 +37,8 @@ describe('Ingrechef Security Vulnerability Suite', function () {
         );
     });
 
-    // Simulating 400 unique injection vector payloads
-    const securityPayloads = Array.from({ length: 400 }, (_, i) => ({
+    // Simulating 450 unique injection vector payloads
+    const securityPayloads = Array.from({ length: 450 }, (_, i) => ({
         id: i + 1,
         vector: `XSS-Vector-Payload-Type-${i + 1}`,
         payload: `<script>alert('Vulnerable-${i+1}')</script>`
