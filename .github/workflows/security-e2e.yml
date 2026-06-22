@@ -15,10 +15,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v20
+      - name: Setup Node.js v24
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install Dependencies
         working-directory: ./automation
@@ -31,13 +31,13 @@ jobs:
           TOTAL_VULN_TESTS: 400
         run: |
           # Executes your security scanning target suite
-          npm run test:security -- --count=400 || echo "Scan completed with findings."
+          npm run test:security -- --count=400 || echo "Security scans completed, compiling findings..."
 
       - name: Upload Security Reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: security-vulnerability-reports
+          name: Ingrechef-Security-E2E-Execution-Artifacts
           path: |
             automation/**/reports/security-*.csv
             automation/**/reports/security-*.xlsx
