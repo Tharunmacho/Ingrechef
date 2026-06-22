@@ -8,7 +8,8 @@
     "test:auth": "mocha tests/auth.test.js --timeout 180000 --exit",
     "test:form": "mocha tests/form.test.js --timeout 180000 --exit",
     "test:gestures": "mocha tests/gestures.test.js --timeout 180000 --exit",
-    "test:e2e": "mocha tests/e2e.test.js --timeout 180000 --exit"
+    "test:e2e": "mocha tests/e2e.test.js --timeout 180000 --exit",
+    "test:scaled": "mocha tests/e2e_scaled.test.js --timeout 180000 --exit"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
