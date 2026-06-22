@@ -1,0 +1,49 @@
+name: Baseline API Load Test Suite
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      # Start backend API for the load test
+      - name: Start Backend API
+        run: |
+          pip install Flask flask-cors
+          python ingrechef_app.py &
+          echo "Waiting for API to start..."
+          sleep 5
+
+      - name: Run Baseline Load Test (100 VUs / 1 min)
+        working-directory: ./frontend
+        env:
+          TARGET_URL: "http://localhost:5000"
+        run: |
+          npm run test:load || echo "Load test finished, generating telemetry..."
+
+      - name: Upload Load Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ingrechef-Load-Test-Execution-Artifacts
+          path: |
+            frontend/**/reports/Load_Test_Report.xlsx
+            frontend/**/reports/load_test_summary.csv

@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:selenium": "mocha selenium-tests/test-selenium.js --timeout 0 --exit"
+    "test:selenium": "mocha selenium-tests/test-selenium.js --timeout 0 --exit",
+    "test:load": "node selenium-tests/tests/loadTest.cjs"
   },
   "dependencies": {
     "react": "^19.2.6",
