@@ -122,6 +122,39 @@ class ResumeParser:
                 profile = self.parse(extracted.text)
                 return profile, extracted
 
+    def generate_reply(self, profile: CandidateProfile, email_subject: str = "") -> str:
+        name = (profile.full_name or "Applicant").strip()
+        skills_list = profile.skills or profile.technical_skills or []
+        
+        key = self._api_key or settings.anthropic_api_key
+        if key and not key.startswith("sk-ant-xxx"):
+            try:
+                prompt = (
+                    f"Generate a professional, personalized email reply to candidate {name} who submitted their resume.\n"
+                    f"Candidate Name: {name}\n"
+                    f"Extracted Skills: {', '.join(skills_list[:6]) if skills_list else 'N/A'}\n"
+                    f"Subject: {email_subject}\n\n"
+                    f"Formatting template reference:\n"
+                    f"Dear {name},\n\n"
+                    f"Thank you for reaching out and sharing your resume with our recruitment team.\n\n"
+                    f"We noted your technical background in [list key extracted skills]. Our hiring team is currently evaluating your profile to identify suitable opportunities.\n\n"
+                    f"If your background matches an active role, we will contact you directly regarding the next steps.\n\n"
+                    f"Best regards,\n"
+                    f"Recruitment Team"
+                )
+                response = self.client.messages.create(
+                    model=settings.anthropic_model,
+                    max_tokens=300,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                output = response.content[0].text.strip()
+                if output:
+                    return output
+            except Exception as exc:
+                log.warning("LLM reply generation failed (%s); falling back to smart context engine.", exc)
+
+        return generate_personalized_reply(profile)
+
 
 def map_veris_to_profile(res) -> CandidateProfile:
     from app.core.models import CandidateProfile, WorkExperience, Education, Project
@@ -218,4 +251,41 @@ def map_veris_to_profile(res) -> CandidateProfile:
         total_experience_years=exp_years,
         current_designation=data.get("designation"),
         additional_info=additional_info if is_resume_doc else {}
+    )
+
+
+def generate_personalized_reply(profile: CandidateProfile | None) -> str:
+    if not profile:
+        return settings.gmail_auto_reply_template
+
+    name = (profile.full_name or "Applicant").strip()
+    skills_list = profile.skills or profile.technical_skills or []
+
+    seen = set()
+    clean_skills = []
+    for s in skills_list:
+        if s and isinstance(s, str) and len(s) < 30 and s.lower() not in seen:
+            seen.add(s.lower())
+            clean_skills.append(s)
+        if len(clean_skills) >= 5:
+            break
+
+    if clean_skills:
+        if len(clean_skills) > 1:
+            skills_str = ", ".join(clean_skills[:-1]) + f" and {clean_skills[-1]}"
+        else:
+            skills_str = clean_skills[0]
+        skills_paragraph = f"We noted your technical background in {skills_str}."
+    elif profile.current_designation:
+        skills_paragraph = f"We noted your background as {profile.current_designation}."
+    else:
+        skills_paragraph = "We have received your application details."
+
+    return (
+        f"Dear {name},\n\n"
+        f"Thank you for reaching out and sharing your resume with our recruitment team.\n\n"
+        f"{skills_paragraph} Our hiring team is currently evaluating your profile to identify suitable opportunities.\n\n"
+        f"If your background matches an active role, we will contact you directly regarding the next steps.\n\n"
+        f"Best regards,\n"
+        f"Recruitment Team"
     )

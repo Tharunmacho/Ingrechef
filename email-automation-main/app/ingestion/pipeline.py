@@ -52,6 +52,7 @@ class AttachmentResult:
     status: str                       # ingested | duplicate | not_resume | error
     candidate_id: Optional[str] = None
     detail: str = ""
+    profile: Optional[CandidateProfile] = None
 
 
 @dataclass
@@ -64,6 +65,13 @@ class ProcessResult:
     @property
     def ingested_ids(self) -> List[str]:
         return [a.candidate_id for a in self.attachments if a.status == "ingested" and a.candidate_id]
+
+    @property
+    def candidate_profile(self) -> Optional[CandidateProfile]:
+        for a in self.attachments:
+            if a.status == "ingested" and a.profile:
+                return a.profile
+        return None
 
 
 class IngestionPipeline:
@@ -146,7 +154,7 @@ class IngestionPipeline:
 
             self._store_file(record, data, att)
             candidate_id = self.repo.insert(record)
-            return AttachmentResult(att.filename, "ingested", candidate_id, f"confidence={profile.confidence:.2f}")
+            return AttachmentResult(att.filename, "ingested", candidate_id, f"confidence={profile.confidence:.2f}", profile=profile)
 
         except (NotAResumeError,) as exc:
             log.info("Skipping attachment: %s", exc)

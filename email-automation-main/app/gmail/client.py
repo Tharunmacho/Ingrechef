@@ -139,6 +139,22 @@ class GmailClient:
             userId="me", id=message_id, body={"addLabelIds": [label_id]}
         ).execute()
 
+    def send_reply(self, to_addr: str, subject: str, thread_id: str, body_text: str) -> None:
+        from email.mime.text import MIMEText
+
+        msg = MIMEText(body_text, "plain", "utf-8")
+        msg["to"] = to_addr
+        sub = subject or ""
+        msg["subject"] = sub if sub.lower().startswith("re:") else f"Re: {sub}"
+
+        raw = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+        body = {"raw": raw, "threadId": thread_id}
+        try:
+            self._service.users().messages().send(userId="me", body=body).execute()
+            log.info("Sent confirmation reply to %s on thread %s", to_addr, thread_id)
+        except Exception as exc:
+            log.warning("Failed to send auto-reply to %s: %s", to_addr, exc)
+
     def _ensure_label(self, label_name: str) -> str:
         labels = self._service.users().labels().list(userId="me").execute().get("labels", [])
         for lbl in labels:

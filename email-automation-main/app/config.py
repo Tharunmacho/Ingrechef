@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     gmail_mark_read: bool = True
     gmail_processed_label: str = "Resumes/Processed"
     gmail_max_results: int = 25
+    gmail_auto_reply: bool = True
+    gmail_auto_reply_template: str = (
+        "Hello,\n\n"
+        "Thank you for submitting your resume! We have successfully received your application "
+        "and added your profile to our recruitment database.\n\n"
+        "Our hiring team will review your details and reach out if your profile matches our requirements.\n\n"
+        "Best regards,\n"
+        "Talent Acquisition Team"
+    )
 
     # ---- Anthropic Claude ----
     anthropic_api_key: str = ""

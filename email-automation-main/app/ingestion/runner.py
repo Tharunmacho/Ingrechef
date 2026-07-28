@@ -48,7 +48,7 @@ class IngestionRunner:
                 if result.status == "processed":
                     summary.processed += 1
                     summary.ingested_candidates += len(result.ingested_ids)
-                    self._finalize(mid)
+                    self._finalize(mid, email, profile=result.candidate_profile)
                 elif result.status == "skipped":
                     summary.skipped += 1
                     # Optionally still mark read so we don't re-scan it forever.
@@ -76,7 +76,19 @@ class IngestionRunner:
                 log.exception("Poll cycle failed; will retry next interval")
             time.sleep(interval_seconds)
 
-    def _finalize(self, message_id: str) -> None:
+    def _finalize(self, message_id: str, email: EmailMessage | None = None, profile: CandidateProfile | None = None) -> None:
+        if settings.gmail_auto_reply and email and email.from_addr:
+            if profile:
+                reply_body = self.pipeline.parser.generate_reply(profile, email.subject)
+            else:
+                reply_body = settings.gmail_auto_reply_template
+
+            self.gmail.send_reply(
+                to_addr=email.from_addr,
+                subject=email.subject,
+                thread_id=email.thread_id,
+                body_text=reply_body,
+            )
         if settings.gmail_mark_read:
             self.gmail.mark_read(message_id)
         if settings.gmail_processed_label:
