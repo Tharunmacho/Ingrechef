@@ -192,21 +192,30 @@ def map_veris_to_profile(res) -> CandidateProfile:
                  "highest_qualification", "experience", "skills", "projects", "education", "pages"):
             additional_info[k] = v
 
+    name_str = (data.get("name") or "").strip()
+    has_contact = bool(email or phone or linkedin_url)
+    has_substance = bool(skills_list or work_list or education_list or projects_list)
+
+    # Discard non-resume documents (random images, payment receipts, generic charts)
+    is_resume_doc = bool(name_str) and (has_contact or has_substance) and name_str.lower() not in (
+        "none", "null", "unknown", "untitled", "t-test", "ggraph", "group", "oo'ol"
+    )
+
     return CandidateProfile(
-        is_resume=True,
-        confidence=1.0,
-        full_name=data.get("name"),
+        is_resume=is_resume_doc,
+        confidence=1.0 if is_resume_doc else 0.0,
+        full_name=data.get("name") if is_resume_doc else None,
         email=email,
         phone=phone,
         location=location,
-        skills=skills_list,
-        technical_skills=skills_list,
-        work_experience=work_list,
-        education=education_list,
-        projects=projects_list,
+        skills=skills_list if is_resume_doc else [],
+        technical_skills=skills_list if is_resume_doc else [],
+        work_experience=work_list if is_resume_doc else [],
+        education=education_list if is_resume_doc else [],
+        projects=projects_list if is_resume_doc else [],
         linkedin_url=linkedin_url,
         github_url=github_url,
         total_experience_years=exp_years,
         current_designation=data.get("designation"),
-        additional_info=additional_info
+        additional_info=additional_info if is_resume_doc else {}
     )
